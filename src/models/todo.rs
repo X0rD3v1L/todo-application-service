@@ -7,15 +7,21 @@ pub struct AddNewTodoItem {
     #[validate(length(min = 1, message = "todo task name required"))]
     pub task_name: String,
 }
-
 #[derive(Validate, Deserialize, Serialize)]
-pub struct UpdateTodoItemURL {
+pub struct DeleteTodoItemURL {
     pub uuid: String,
 }
 
 #[derive(Validate, Deserialize, Serialize)]
-pub struct DeleteTodoItemURL {
+pub struct UpdateTodoTaskItem {
     pub uuid: String,
+}
+
+#[derive(Validate, Deserialize, Serialize)]
+pub struct UpdateTodoTaskStatus {
+    pub uuid: String,
+    #[validate(length(min = 1, message = "todo task name required"))]
+    pub task_name: String,
 }
 
 #[derive(Validate, Deserialize, Serialize, Debug)]

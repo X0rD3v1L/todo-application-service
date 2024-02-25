@@ -1,16 +1,16 @@
 use actix_web::web::Data;
-use actix_web::{delete, get, post, put, web::Json, web::Path, App, HttpServer};
+use actix_web::{delete, get, post, put, web::Json, App, HttpServer};
 use error::TodoError;
 use models::todo::Todo;
 use uuid;
 mod models;
 use crate::db::{todo_data_trait::TodoDataTrait, Database};
 mod db;
-use crate::models::todo::{AddNewTodoItem, DeleteTodoItemURL, UpdateTodoItemURL};
+use crate::models::todo::{AddNewTodoItem, UpdateTodoTaskItem, UpdateTodoTaskStatus};
 use validator::Validate;
 mod error;
 
-#[get("/gettodoitems")]
+#[get("/api/todos")]
 async fn get_todo_items(db: Data<Database>) -> Result<Json<Vec<Todo>>, TodoError> {
     let todos = Database::get_all_todo_items(&db).await;
     match todos {
@@ -19,7 +19,7 @@ async fn get_todo_items(db: Data<Database>) -> Result<Json<Vec<Todo>>, TodoError
     }
 }
 
-#[post("/addnewtodoitem")]
+#[post("/api/todo/new")]
 async fn add_new_todo_item(
     body: Json<AddNewTodoItem>,
     db: Data<Database>,
@@ -45,26 +45,40 @@ async fn add_new_todo_item(
     }
 }
 
-#[put("/edittodoitem/{uuid}")]
-async fn update_todo_item(
-    update_todo_item_url: Path<UpdateTodoItemURL>,
+#[put("/api/todo/editstatus")]
+async fn update_todo_task_item(
+    body: Json<UpdateTodoTaskItem>,
     db: Data<Database>,
 ) -> Result<Json<Todo>, TodoError> {
-    let uuid: String = update_todo_item_url.into_inner().uuid;
-    let updated_result = Database::update_todo(&db, uuid).await;
+    let uuid: String = body.uuid.clone();
+    let updated_result = Database::update_todo_task(&db, uuid).await;
     match updated_result {
         Some(updated_todo) => Ok(Json(updated_todo)),
         None => Err(TodoError::NoSuchTodoFound),
     }
 }
 
-#[delete("/deletetodoitem/{uuid}")]
-async fn delete_todo_item(
-    delete_todo_item_url: Path<DeleteTodoItemURL>,
+#[put("/api/todo/edittask")]
+async fn update_todo_task_status(
+    body: Json<UpdateTodoTaskStatus>,
     db: Data<Database>,
 ) -> Result<Json<Todo>, TodoError> {
-    let uuid = delete_todo_item_url.into_inner().uuid;
-    let deleted_todo = Database::delete_todo(&db, uuid.clone()).await;
+    let uuid: String = body.uuid.clone();
+    let edited_task_name = body.task_name.clone();
+    let updated_result = Database::update_todo_status(&db, uuid, edited_task_name).await;
+    match updated_result {
+        Some(updated_todo) => Ok(Json(updated_todo)),
+        None => Err(TodoError::NoSuchTodoFound),
+    }
+}
+
+#[delete("/api/todo/delete/{uuid}")]
+async fn delete_todo_item(
+    body: Json<UpdateTodoTaskStatus>,
+    db: Data<Database>,
+) -> Result<Json<Todo>, TodoError> {
+    let uuid: String = body.uuid.clone();
+    let deleted_todo = Database::delete_todo(&db, uuid).await;
     match deleted_todo {
         Some(deleted) => Ok(Json(deleted)),
         None => Err(TodoError::NoSuchTodoFound),
@@ -84,7 +98,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(db_data.clone())
             .service(get_todo_items)
             .service(add_new_todo_item)
-            .service(update_todo_item)
+            .service(update_todo_task_item)
+            .service(update_todo_task_status)
             .service(delete_todo_item)
     })
     .bind("127.0.0.1:8080")?

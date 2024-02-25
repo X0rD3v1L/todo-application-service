@@ -8,7 +8,8 @@ use surrealdb::Error;
 pub trait TodoDataTrait {
     async fn get_all_todo_items(db: &Data<Database>) -> Option<Vec<Todo>>;
     async fn add_new_todo(db: &Data<Database>, new_todo_item: Todo) -> Option<Todo>;
-    async fn update_todo(db: &Data<Database>, uuid: String) -> Option<Todo>;
+    async fn update_todo_task(db: &Data<Database>, uuid: String) -> Option<Todo>;
+    async fn update_todo_status(db: &Data<Database>, uuid: String, edited_task_name: String) -> Option<Todo>;
     async fn delete_todo(db: &Data<Database>, uuid: String) -> Option<Todo>;
 }
 
@@ -35,7 +36,7 @@ impl TodoDataTrait for Database {
         }
     }
 
-    async fn update_todo(db: &Data<Database>, uuid: String) -> Option<Todo> {
+    async fn update_todo_task(db: &Data<Database>, uuid: String) -> Option<Todo> {
         let find_todo_item: Result<Option<Todo>, Error> = db.client.select(("todo", &uuid)).await;
         match find_todo_item {
             Ok(found) => match found {
@@ -47,6 +48,31 @@ impl TodoDataTrait for Database {
                             uuid,
                             task_name: find_todo_item.task_name.clone(),
                             is_completed: true,
+                        })
+                        .await;
+                    match updated_todo {
+                        Ok(updated) => updated,
+                        Err(_) => None,
+                    }
+                }
+                None => None,
+            },
+            Err(_) => None,
+        }
+    }
+
+    async fn update_todo_status(db: &Data<Database>, uuid: String, edited_task_name: String) -> Option<Todo> {
+        let find_todo_item: Result<Option<Todo>, Error> = db.client.select(("todo", &uuid)).await;
+        match find_todo_item {
+            Ok(found) => match found {
+                Some(find_todo_item) => {
+                    let updated_todo: Result<Option<Todo>, Error> = db
+                        .client
+                        .update(("todo", &uuid))
+                        .merge(Todo {
+                            uuid,
+                            task_name: String::from(edited_task_name),
+                            is_completed: find_todo_item.is_completed.clone(),
                         })
                         .await;
                     match updated_todo {
