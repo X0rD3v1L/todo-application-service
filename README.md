@@ -2,6 +2,23 @@
 
 This document provides an overview of the Todo App Service API endpoints and their functionality.
 
+### Creating SurrealDB Instance
+
+To create a SurrealDB instance named `todoapp.db` with the username `root` and password `root`, run the following command:
+
+surreal start file:todoapp.db --user root --password root
+
+Replace `root` with your desired username and password for accessing the database.
+
+## Database Credentials
+Database used: SurrealDB
+
+Please create a `.env` file in the root directory of the project and add the following variables:
+
+DB_USERNAME=your_username
+
+DB_PASSWORD=your_password
+
 ## Endpoints
 
 ### GET /api/v1/todos
