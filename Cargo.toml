@@ -13,4 +13,5 @@ json = "0.12.4"
 serde = {version = "1.0.197", features = ["derive"]}
 surrealdb = "1.2.0"
 uuid = "1.7.0"
+dotenv = "0.15.0"
 validator = {version = "0.16.1",features = ["derive"]}
