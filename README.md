@@ -10,6 +10,29 @@ This document provides an overview of the Todo App Service API endpoints and the
 - **Method:** `GET`
 - **Request Body:** None
 - **Response Body:** JSON array of todo items.
+  ```json
+  [
+    {
+        "uuid": "3b2cb991a5c64b54a2b7196e8c104073",
+        "task_name": "Finish reading articles",
+        "is_completed": true
+    },
+    {
+        "uuid": "518cc1436d2342f2952a37e5525ff6d1",
+        "task_name": "Learn Async Rust",
+        "is_completed": false
+    },
+    {
+        "uuid": "77aff0a66de047e59a9475f21412d92c",
+        "task_name": "Complete Rustlings",
+        "is_completed": false
+    },
+    {
+        "uuid": "7dc55978c82145f397e9373df2deaa1c",
+        "task_name": "Learn Actix Web",
+        "is_completed": true
+    }
+  ]
 - **Response Codes:**
   - `200 OK`: Successful request.
   - `404 Not Found`: No todo items found.
@@ -20,6 +43,10 @@ This document provides an overview of the Todo App Service API endpoints and the
 - **Method:** `POST`
 - **Request Body:**
   - `task_name` (string, required): Name of the new todo task.
+  ```json
+  {
+    "task_name": "Finish reading articles"
+  }
 - **Response Body:** None
 - **Response Codes:**
   - `201 Created`: Todo item created successfully.
@@ -32,6 +59,11 @@ This document provides an overview of the Todo App Service API endpoints and the
 - **Request Body:**
   - `uuid` (string, required): UUID of the todo item to update.
   - `is_completed` (boolean, required): New completion status of the todo item.
+  ```json
+  {
+    "uuid": "3b2cb991a5c64b54a2b7196e8c104073",
+    "is_completed": true
+  }
 - **Response Body:** None
 - **Response Codes:**
   - `200 OK`: Todo item status updated successfully.
@@ -44,6 +76,11 @@ This document provides an overview of the Todo App Service API endpoints and the
 - **Request Body:**
   - `uuid` (string, required): UUID of the todo item to update.
   - `task_name` (string, required): New task name for the todo item.
+  ```json
+  {
+    "uuid": "3b2cb991a5c64b54a2b7196e8c104073",
+    "task_name": "Finish reading all pending articles"
+  }
 - **Response Body:** None
 - **Response Codes:**
   - `200 OK`: Todo item task name updated successfully.
