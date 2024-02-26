@@ -1,16 +1,18 @@
-use actix_web::web::Data;
+use actix_web::web::{Data, Path};
 use actix_web::{delete, get, post, put, web::Json, App, HttpServer};
+use actix_web::{HttpResponse, Responder};
 use error::TodoError;
-use models::todo::Todo;
+use models::todo::{Todo, UpdateTodoTaskStatus};
 use uuid;
 mod models;
 use crate::db::{todo_data_trait::TodoDataTrait, Database};
 mod db;
-use crate::models::todo::{AddNewTodoItem, UpdateTodoTaskItem, UpdateTodoTaskStatus};
+use crate::models::todo::{AddNewTodoItem, DeleteTodoItemURL, UpdateTodoTaskItem};
 use validator::Validate;
 mod error;
 
-#[get("/api/todos")]
+// Handler to get all todo items
+#[get("api/v1/todos")]
 async fn get_todo_items(db: Data<Database>) -> Result<Json<Vec<Todo>>, TodoError> {
     let todos = Database::get_all_todo_items(&db).await;
     match todos {
@@ -19,11 +21,9 @@ async fn get_todo_items(db: Data<Database>) -> Result<Json<Vec<Todo>>, TodoError
     }
 }
 
-#[post("/api/todo/new")]
-async fn add_new_todo_item(
-    body: Json<AddNewTodoItem>,
-    db: Data<Database>,
-) -> Result<Json<Todo>, TodoError> {
+// Handler to add a new todo item
+#[post("api/v1/todos/new")]
+async fn add_new_todo_item(body: Json<AddNewTodoItem>, db: Data<Database>) -> impl Responder {
     let is_valid = body.validate();
     match is_valid {
         Ok(_) => {
@@ -37,7 +37,7 @@ async fn add_new_todo_item(
                     .await;
 
             match new_todo {
-                Some(created) => Ok(Json(created)),
+                Some(_) => Ok(HttpResponse::Created().finish()),
                 None => Err(TodoError::TodoCreationFailure),
             }
         }
@@ -45,46 +45,52 @@ async fn add_new_todo_item(
     }
 }
 
-#[put("/api/todo/editstatus")]
+// Handler to update the status of a todo item
+#[put("api/v1/todos/edit/status")]
 async fn update_todo_task_item(
+    body: Json<UpdateTodoTaskStatus>,
+    db: Data<Database>,
+) -> impl Responder {
+    let uuid: String = body.uuid.clone();
+    let completion_status = body.is_completed.clone();
+    let updated_result = Database::update_todo_task(&db, uuid, None, Some(completion_status)).await;
+    match updated_result {
+        Some(_) => Ok(HttpResponse::Ok().finish()),
+        None => Err(TodoError::NoSuchTodoFound),
+    }
+}
+
+// Handler to update the task name of a todo item
+#[put("api/v1/todos/edit/task")]
+async fn update_todo_task_status(
     body: Json<UpdateTodoTaskItem>,
     db: Data<Database>,
-) -> Result<Json<Todo>, TodoError> {
-    let uuid: String = body.uuid.clone();
-    let updated_result = Database::update_todo_task(&db, uuid).await;
-    match updated_result {
-        Some(updated_todo) => Ok(Json(updated_todo)),
-        None => Err(TodoError::NoSuchTodoFound),
-    }
-}
-
-#[put("/api/todo/edittask")]
-async fn update_todo_task_status(
-    body: Json<UpdateTodoTaskStatus>,
-    db: Data<Database>,
-) -> Result<Json<Todo>, TodoError> {
+) -> impl Responder {
     let uuid: String = body.uuid.clone();
     let edited_task_name = body.task_name.clone();
-    let updated_result = Database::update_todo_status(&db, uuid, edited_task_name).await;
+    let updated_result =
+        Database::update_todo_task(&db, uuid, Some(edited_task_name.to_string()), None).await;
     match updated_result {
-        Some(updated_todo) => Ok(Json(updated_todo)),
+        Some(_) => Ok(HttpResponse::Ok().finish()),
         None => Err(TodoError::NoSuchTodoFound),
     }
 }
 
-#[delete("/api/todo/delete/{uuid}")]
+// Handler to delete a todo item
+#[delete("api/v1/todos/delete/{uuid}")]
 async fn delete_todo_item(
-    body: Json<UpdateTodoTaskStatus>,
+    delete_todo_item_url: Path<DeleteTodoItemURL>,
     db: Data<Database>,
-) -> Result<Json<Todo>, TodoError> {
-    let uuid: String = body.uuid.clone();
+) -> impl Responder {
+    let uuid: String = delete_todo_item_url.into_inner().uuid;
     let deleted_todo = Database::delete_todo(&db, uuid).await;
     match deleted_todo {
-        Some(deleted) => Ok(Json(deleted)),
+        Some(_) => Ok(HttpResponse::NoContent().finish()),
         None => Err(TodoError::NoSuchTodoFound),
     }
 }
 
+// Main function to start the HTTP server
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     let db = Database::init()

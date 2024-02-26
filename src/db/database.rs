@@ -9,8 +9,12 @@ pub struct Database {
 }
 
 impl Database {
+    // Initialize a new database connection
     pub async fn init() -> Result<Self, Error> {
+        // Connect to the Surreal database engine via WebSocket
         let client = Surreal::new::<Ws>("127.0.0.1:8000").await?;
+
+        // Sign in to the Surreal database with root credentials
         client
             .signin(Root {
                 username: "root",
@@ -18,6 +22,8 @@ impl Database {
             })
             .await?;
         client.use_ns("surreal").use_db("todoapp").await.unwrap();
+
+        // Returns a new instance of the Database struct
         Ok(Database {
             client,
             name_space: String::from("surreal"),

@@ -1,4 +1,3 @@
-//todo.rs
 use serde::{Deserialize, Serialize};
 use validator::Validate;
 
@@ -13,12 +12,13 @@ pub struct DeleteTodoItemURL {
 }
 
 #[derive(Validate, Deserialize, Serialize)]
-pub struct UpdateTodoTaskItem {
+pub struct UpdateTodoTaskStatus {
     pub uuid: String,
+    pub is_completed: bool,
 }
 
 #[derive(Validate, Deserialize, Serialize)]
-pub struct UpdateTodoTaskStatus {
+pub struct UpdateTodoTaskItem {
     pub uuid: String,
     #[validate(length(min = 1, message = "todo task name required"))]
     pub task_name: String,
@@ -32,6 +32,7 @@ pub struct Todo {
 }
 
 impl Todo {
+    // Constructor function to create a new Todo instance
     pub fn new(uuid: String, task_name: String, is_completed: bool) -> Todo {
         Todo {
             uuid,
