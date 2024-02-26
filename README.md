@@ -99,7 +99,7 @@ This document provides an overview of the Todo App Service API endpoints and the
 
 ## Error Handling
 
-- If an error occurs during any request, the API will return an appropriate HTTP status code along with a JSON response containing an error message.
+- If an error occurs during any request, the API will return an appropriate HTTP status code along with a response message containing an error message.
 - Possible error codes include `400 Bad Request`, `404 Not Found`, `500 Internal Server Error`, etc.
 
 ## Models
