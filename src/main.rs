@@ -33,7 +33,7 @@ async fn add_new_todo_item(body: Json<AddNewTodoItem>, db: Data<Database>) -> im
             let new_uuid = uuid::Uuid::new_v4().simple().encode_lower(&mut buffer);
 
             let new_todo =
-                Database::add_new_todo(&&db, Todo::new(String::from(new_uuid), task_name, false))
+                Database::add_new_todo(&db, Todo::new(String::from(new_uuid), task_name, false))
                     .await;
 
             match new_todo {

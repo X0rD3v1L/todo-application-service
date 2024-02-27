@@ -24,7 +24,7 @@ impl TodoDataTrait for Database {
     async fn get_all_todo_items(db: &Data<Database>) -> Option<Vec<Todo>> {
         let result = db.client.select("todo").await;
         match result {
-            Ok(all_to_items) => Some(all_to_items),
+            Ok(all_todo_items) => Some(all_todo_items),
             Err(_) => None,
         }
     }
